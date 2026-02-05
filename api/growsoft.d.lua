@@ -147,7 +147,7 @@ http = {}
 ---@field getRole fun(self: Player): Role
 ---@field getBankBalance fun(self: Player): number
 ---@field setBankBalance fun(self: Player, value: number)
----@field onConsoleMessage fun(self: Player, text: string)
+---@field onConsoleMessage fun(self: Player, text: string|number)
 ---@field onTalkBubble fun(self: Player, netID: number, text: string, condition: number)
 ---@field getName fun(self: Player): string
 ---@field getIP fun(self: Player): string
@@ -237,7 +237,7 @@ http = {}
 ---@field addFriend fun(self: Player, target: Player)
 ---@field removeFriend fun(self: Player, target: Player)
 ---@field getOwnedWorlds fun(self: Player): World[]
----@field getRecentWorlds fun(self: Player): World[]
+---@field getRecentWorlds fun(self: Player): number[]
 ---@field getAccessWorlds fun(self: Player): World[]
 ---@field getPing fun(self: Player): number
 ---@field getDungeonScrolls fun(self: Player): number
@@ -366,6 +366,9 @@ function setDailyEvent(event_id) end
 ---@param full_restart 1|0
 ---@param message string
 function queueRestart(in_seconds, full_restart, message) end
+
+--- @return World[]
+function getActiveWorlds() end
 
 -- =========================================================
 -- CALLBACKS
