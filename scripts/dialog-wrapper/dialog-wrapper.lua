@@ -133,7 +133,7 @@ function DialogWrapper:show(player)
     ---@param p Player
     ---@param data table
     function(world, p, data)
-      if self.callback then
+      if self.callback and data['dialog_name'] == self.name then
         return self.callback(
           world,
           CPlayer.register(p),

@@ -91,7 +91,7 @@ local function loadJSON(id)
 end
 
 local function flushJSON(id)
-  file.write(jsonPath(id), json.encode(json_cache[id], 4))
+  file.write(jsonPath(id), json.encode(json_cache[id], 2))
 end
 
 function JSON.open(identifier)

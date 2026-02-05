@@ -65,6 +65,11 @@ dir = {}
 ---@field open fun(dbPath: string): SQLDatabaseConnection
 sqlite = {}
 
+---@class Http
+---@field get fun(url,headers)
+---@field post fun(url,headers,postData)
+http = {}
+
 -- =========================================================
 -- ROLE
 -- =========================================================
@@ -345,11 +350,22 @@ function addSidebarButton(sidebarJson) end
 ---@param text string
 function parseText(text) end
 
---@param user_id number
+---@param user_id number
 function deleteAccount(user_id) end
 
---@param world_id number
+---@param world_id number
 function deleteWorld(world_id) end
+
+---@param event_id any
+function setEvent(event_id) end
+
+---@param event_id any
+function setDailyEvent(event_id) end
+
+---@param in_seconds number
+---@param full_restart 1|0
+---@param message string
+function queueRestart(in_seconds, full_restart, message) end
 
 -- =========================================================
 -- CALLBACKS
