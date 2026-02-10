@@ -70,6 +70,11 @@ sqlite = {}
 ---@field post fun(url,headers,postData)
 http = {}
 
+---@class Bit
+---@field band fun(any)
+---@field lshift fun(any)
+bit = {}
+
 -- =========================================================
 -- ROLE
 -- =========================================================
@@ -243,6 +248,8 @@ http = {}
 ---@field getDungeonScrolls fun(self: Player): number
 ---@field setDungeonScrolls fun(self: Player, amount: number)
 ---@field setStats fun(self: Player, type: number, amount: number)
+---@field hasGrowID fun(self: Player): boolean
+---@field getXP fun(self: Player): number
 
 ---@class NPC
 ---@return Player
@@ -370,6 +377,13 @@ function queueRestart(in_seconds, full_restart, message) end
 --- @return World[]
 function getActiveWorlds() end
 
+--- @param worldName string
+--- @return World
+function getWorldByName(worldName) end
+
+--- @param worldName string
+function setBroadcastWorld(worldName) end
+
 -- =========================================================
 -- CALLBACKS
 -- =========================================================
@@ -470,7 +484,7 @@ function onPlayerStartopiaCallback(callback) end
 ---@param callback fun(world: World, player: Player, itemID: number, itemCount: number)
 function onPlayerCookingCallback(callback) end
 
----@param callback fun(req): table
+---@param callback fun(req): table({status: number, body: string, headers: table })
 function onHTTPRequest(callback) end
 
 -- =========================================================
