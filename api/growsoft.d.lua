@@ -336,6 +336,18 @@ function getPlayer(playerID) end
 ---@return Item
 function getItem(itemID) end
 
+--- @param value number
+function setGemEvent(value) end
+
+--- @param value number
+function setXPEvent(value) end
+
+--- @return number
+function getGemEvent() end
+
+--- @return number
+function getXPEvent() end
+
 ---@return Role
 function getHighestPriorityRole() end
 
