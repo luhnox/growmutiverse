@@ -109,6 +109,7 @@ end
 
 local function getKitData(player)
   local uid = tostring(player:getUserID())
+  local old_data = player_old_table[uid]
 
   if not player_db.has(uid) then
     player_db.set(uid, {})
@@ -116,9 +117,13 @@ local function getKitData(player)
 
   local dataPlayer = player_db.get(uid) or {}
 
-  if player_old_table[uid] and player_old_table[uid].kits ~= nil then
+  if old_data and old_data.kits ~= 0 then
     dataPlayer.kits = player_old_table[uid].kits
-    player_db.set(dataPlayer)
+    player_db.set(uid, dataPlayer)
+    old_data.kits = 0
+    player_old_table[uid] = old_data
+
+    player:onConsoleMessage('Migrate old DB kits')
   end
 
   if dataPlayer.kits == nil then
@@ -148,17 +153,7 @@ local function getKitData(player)
     end
   end
 
-  return dataPlayer
-end
-
-local function giveKit(player, kit)
-  local text = '`2Claim Kits:\n`o'
-  for itemID, amount in pairs(kit.prizes) do
-    text = text .. getItem(itemID):getName() .. ' ' .. amount .. 'x\n'
-    if not player:changeItem(itemID, amount, 0) then
-      player:changeItem(itemID, amount, 1)
-    end
-  end
+  return dataPlayer.kits
 end
 
 local function checkKit(player, kitData, unlockedLevel)
@@ -210,6 +205,10 @@ local function addExp(player, amount)
   player:onConsoleMessage('`#LEVEL UP!` Level ' .. kitData.level)
 
   checkKit(player, kitData, kitData.level)
+  local uid = tostring(player:getUserID())
+  local dataPlayer = player_db.get(uid)
+  dataPlayer.kits = kitData
+  player_db.set(uid, dataPlayer)
 end
 
 onTileBreakCallback(function(world, player, tile)
@@ -230,9 +229,8 @@ local function kitDialog(player)
   local kitData = getKitData(player)
   local dialog = {
     'set_default_color|`o',
-    'set_bg_color|0,0,0,150|',
     ('add_custom_button|iconID|icon:' .. Configuration.dialog.titleIcon .. ';margin:0.5,0;state:disabled|'),
-    ('add_progress_bar|' .. Configuration.dialog.titleLabel .. '|big||' .. kitData.exp .. '|' .. calcRequireExp(kitData.level) .. '|' .. kitData.level .. ' (' .. kitData.exp .. '/' .. calcRequireExp(kitData.level) .. ')|4294967295|'),
+    ('add_progress_bar|' .. Configuration.dialog.titleLabel .. '|big||' .. kitData.exp .. '|' .. calcRequireExp(kitData.level) .. '|Level ' .. kitData.level .. ' (' .. kitData.exp .. '/' .. calcRequireExp(kitData.level) .. ')|4294967295|'),
     'reset_placement_x|',
     'add_spacer|small|'
   }
@@ -245,7 +243,8 @@ local function kitDialog(player)
 
 
   for i, item in ipairs(Configuration.data) do
-    dialog[#dialog + 1] = ('add_button_with_icon|kit_' .. i .. '|' .. ((not kitData.claimed[item.level] and kitData.level >= item.level) and ('`2' .. math.min(kitData.level, item.level) .. '/' .. item.level) or (kitData.claimed[item.level] and kitData.level >= item.level) and '`oclaimed' or ('`4' .. math.min(kitData.level, item.level) .. '/' .. item.level)) .. '|' .. ((not kitData.claimed[item.level] and kitData.level >= item.level) and 'staticYellowFrame' or (kitData.claimed[item.level] and kitData.level >= item.level) and 'staticBlueFrame' or 'staticGreyFrame') .. (((not kitData.claimed[item.level] and kitData.level >= item.level) and ',enabled' or (kitData.claimed[item.level] and kitData.level >= item.level) and ',visibled' or ',disabled')) .. '|' .. item.icon .. '||')
+    local isClaim = kitData.claimed[tostring(item.level)]
+    dialog[#dialog + 1] = ('add_button_with_icon|kit_' .. i .. '|' .. ((not isClaim and kitData.level >= item.level) and ('`2' .. math.min(kitData.level, item.level) .. '/' .. item.level) or (isClaim and kitData.level >= item.level) and '`oclaimed' or ('`4' .. math.min(kitData.level, item.level) .. '/' .. item.level)) .. '|' .. ((not kitData.claimed[item.level] and kitData.level >= item.level) and 'staticYellowFrame' or (isClaim and kitData.level >= item.level) and 'staticBlueFrame' or 'staticGreyFrame') .. (((not isClaim and kitData.level >= item.level) and ',enabled' or (isClaim and kitData.level >= item.level) and ',disable' or ',disabled')) .. '|' .. item.icon .. '||')
   end
   dialog[#dialog + 1] = 'add_button_with_icon||END_LIST|noflags|0||'
   dialog[#dialog + 1] = 'add_spacer|small|'
@@ -260,7 +259,7 @@ end
 
 onPlayerCommandCallback(function(world, player, fullCommand)
   local command, args = fullCommand:match("^(%S+)%s*(.*)$")
-  if command:lower() == Configuration.command then
+  if command:lower() == Configuration.command or command:lower() == 'kit' then
     if args ~= '' then
       local sub, value = args:match("^(%S+)%s*(%d*)$")
       local isDev = player:hasRole(getHighestPriorityRole().roleID)
@@ -272,7 +271,7 @@ onPlayerCommandCallback(function(world, player, fullCommand)
             addExp(player, amount)
             player:onConsoleMessage('`2Added Kit XP: `o' .. amount)
           else
-            player:onConsoleMessage('Usage: /kits xp <amount>')
+            player:onConsoleMessage('Usage: /' .. command .. ' xp <amount>')
           end
         end
       end
@@ -284,23 +283,46 @@ onPlayerCommandCallback(function(world, player, fullCommand)
   end
 end)
 
+local function giveKit(player, kit)
+  local text = "\n`2[ Claim Kits ]:`o\n"
+  local first = true
+
+  for itemID, amount in pairs(kit.prizes) do
+    if not first then text = text .. "\n" end
+    first = false
+
+    text = text .. getItem(itemID):getName() .. " " .. amount .. "x"
+
+    if not player:changeItem(itemID, amount, 0) then
+      player:changeItem(itemID, amount, 1)
+    end
+  end
+
+  player:onConsoleMessage(text)
+end
+
 onPlayerDialogCallback(function(world, player, data)
   if data['dialog_name'] == 'kits' then
     local button = data['buttonClicked']
 
     if button ~= nil then
       local idx = button:match('^kit_(%d+)$')
+      local index = tonumber(idx)
+      local kitData = getKitData(player)
+      local kit = Configuration.data[index]
 
       if idx ~= nil then
-        local index = tonumber(idx)
-        local kitData = getKitData(player)
-        local kit = Configuration.data[index]
-
         if kit ~= nil then
           if kitData.level >= kit.level then
-            if kitData.claimed[kit.level] ~= true then
+            if kitData.claimed[tostring(kit.level)] ~= true then
+              local uid = tostring(player:getUserID())
+              local dataPlayer = player_db.get(uid)
+              kitData.claimed[tostring(kit.level)] = true
+
+              dataPlayer.kits = kitData
+              player_db.set(uid, dataPlayer)
+
               giveKit(player, kit)
-              kitData.claimed[kit.level] = true
             else
               player:onConsoleMessage('`4Kit already claimed')
             end
@@ -308,21 +330,24 @@ onPlayerDialogCallback(function(world, player, data)
             local kit_desc = {
               'set_default_color|`o',
               'set_bg_color|0,0,0,150|',
-              ('add_label_with_icon|big|Kit Reward' .. index .. ' (' .. kitData.level .. '/' .. kit.level .. ')|left|' .. kit.icon '|'),
+              ('add_label_with_icon|big|Kit Reward ' .. index .. ' (' .. kitData.level .. '/' .. kit.level .. ')|left|' .. kit.icon .. '|'),
               ('add_smalltext|' .. kit.description .. '|'),
               'add_spacer|small|',
               'add_textbox|[ Rewards ]:|',
             }
 
-            for itemID, amount in ipairs(kit.prizes) do
+            for itemID, amount in pairs(kit.prizes) do
               kit_desc[#kit_desc + 1] = ('add_label_with_icon|small|' .. getItem(itemID):getName() .. ' ' .. amount .. 'x|left|' .. itemID .. '|')
             end
 
             kit_desc[#kit_desc + 1] = 'add_spacer|small|'
             kit_desc[#kit_desc + 1] =
-            'add_custom_button|back|textLabel:Back;middle_colour:130154495;border_colour:130154495;|'
+            'add_smalltext|`2INFO:`o Reach the required level to unlock and claim these rewards.|'
+            kit_desc[#kit_desc + 1] = 'add_custom_margin|x:0;y:4|'
             kit_desc[#kit_desc + 1] =
             'add_custom_button|back|textLabel:Back;middle_colour:130154495;border_colour:130154495;|'
+            kit_desc[#kit_desc + 1] =
+            'add_custom_button|Close|textLabel:Close;middle_colour:65535;border_colour:65535;anchor:back;left:1.05;|'
             kit_desc[#kit_desc + 1] = 'end_dialog|kit_desc||'
 
             player:onDialogRequest(table.concat(kit_desc, '\n'))
