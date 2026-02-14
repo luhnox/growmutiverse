@@ -34,14 +34,14 @@ local Configuration = {
 
     items = {
       [242] = {
-        chance = 40,
+        chance = 10,
         amount = math.random(1, 5),
         multiple = false,
         multiple_max = 200
       },
 
       [7188] = {
-        chance = 0.1,
+        chance = 0.0001,
         amount = 1,
         multiple = false
       }
@@ -126,20 +126,25 @@ onPlayerTick(function(player)
     return
   end
 
-  player:onConsoleMessage(os.time() - data.lastMove)
+  ---player:onConsoleMessage(os.time() - data.lastMove)
 
   if isAfk[user] ~= nil then giveRewards(player) end
 
   if os.time() - data.lastMove >= Configuration.duration then
     if isAfk[user] == nil then
       player:onConsoleMessage('`oYou are now AFK')
-      player:sendVariant({
-        "OnAddNotification",
-        "interface/atomic_button.rttex",
-        "`#AFK Detected",
-        "audio/hub_open.wav",
-        0
-      })
+      if math.random(0, 1) == 1 then
+        player:sendVariant({
+          "OnAddNotification",
+          "interface/atomic_button.rttex",
+          "`#AFK Detected",
+          "audio/hub_open.wav",
+          0
+        })
+      else
+        player:onConsoleMessage('`#** Afk Detected')
+        player:playAudio('audio/msg.wav')
+      end
       isAfk[user] = true
     end
     data.lastMove = os.time()

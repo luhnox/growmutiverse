@@ -71,8 +71,7 @@ onPlayerCommandCallback(function(_, user, cmd)
 
     user:onDialogRequest(
       "set_default_color|`o\n" ..
-      "set_bg_color|43,34,74,200|\n" ..
-      "set_border_color|112,86,191,255|\n" ..
+      "set_bg_color|0,0,0,150|\n" ..
       "add_label|big|Multiple Events|left|\n" ..
       "add_spacer|small|\n" ..
       string.format("add_label_with_icon|small|x%d|left|9438|\n", gemEvent) ..
@@ -80,8 +79,8 @@ onPlayerCommandCallback(function(_, user, cmd)
       string.format("add_smalltext|%s|\n", tempText) ..
       string.format("add_smalltext|Price: %s %s|\n", formatNum(cost), currencyMode) ..
       "add_spacer|small|\n" ..
-      "add_button|boost|`2Boost|noflags|0|0|\n" ..
-      (user:hasRole(reset_button_permission_role) and "add_spacer|small|\nadd_button|reset|`4Reset|noflags|0|0|\n" or "") ..
+      "add_custom_button|boost|textLabel:Boost Server;middle_colour:1353665791;border_colour:1353665791;|\n" ..
+      (user:hasRole(reset_button_permission_role) and "add_custom_button|reset|textLabel:Reset;middle_colour:65535;border_colour:65535;anchor:boost;left:1.05;|\n" or "") ..
       "add_quick_exit|\n" ..
       "end_dialog|xevnt_dialog||"
     )
@@ -151,9 +150,9 @@ onPlayerDialogCallback(function(world, user, data)
           }
 
           local playerDiscordID = user:getDiscordID()
-          local mentionUser = user:getCleanName()
+          local mentionUser = '**' .. user:getCleanName() .. '**'
 
-          if canMention and playerDiscordID then mentionUser = ("<@" .. playerDiscordID .. ">") end
+          if canMention and playerDiscordID ~= '0' then mentionUser = ("<@" .. playerDiscordID .. ">") end
           local sendEveryone = (getGemEvent() % 10 == 0)
 
           local jsonData = {

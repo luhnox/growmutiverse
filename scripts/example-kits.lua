@@ -1,6 +1,9 @@
 print('(example-kits) for GTPS Cloud | by Nperma')
 --- /kits
 
+local database = require('db-wrapper').wrapper --- required Database Module
+
+
 local Configuration = {
   xpPerBreakBlock = 20,
   xpPerPlaceBlock = 4,
@@ -8,8 +11,8 @@ local Configuration = {
   command = 'kits',
 
   dialog = {
-    titleLabel = 'Kits Season',
-    titleIcon = 2,
+    titleLabel = 'Kits Season 1',
+    titleIcon = 1366,
   },
 
   maxLevel = 100,
@@ -30,7 +33,7 @@ local Configuration = {
     }, {
     level = 10,
     icon = 406,
-    description = 'Best `#Consumeable`o of the Time!!',
+    description = 'Best `#Consumeable`o `oof the Time!!',
     prizes = {
       [406] = 140
     }
@@ -45,7 +48,7 @@ local Configuration = {
     {
       level = 20,
       icon = 10838,
-      description = 'Fishing Pack\nGive some fishing starter Packs',
+      description = 'Fishing Pack Give some fishing starter Packs',
       prizes = {
         [3042] = 1,
         [2912] = 1,
@@ -54,7 +57,7 @@ local Configuration = {
     }, {
     level = 25,
     icon = 528,
-    description = 'Buff and MUltiple',
+    description = 'Buff and Multiple',
     prizes = {
       [528] = 1,
       [4604] = 2,
@@ -63,7 +66,7 @@ local Configuration = {
   }, {
     level = 35,
     icon = 20700,
-    description = 'Cheat buff\ngained some `#Buff',
+    description = 'Cheat buff gained some `#Buff',
     prizes = {
       [20700] = 1,
       [20648] = 1
@@ -86,10 +89,12 @@ local Configuration = {
   }
 }
 
-local player_db, player_table = loadStringFromServer('nperma_player_db'), {}
+local player_old_db, player_old_table = loadStringFromServer('nperma_player_db'), {}
 
-if player_db then
-  player_table = json.decode(player_db)
+local player_db = database('player_db_nperma')
+
+if player_old_db then
+  player_old_table = json.decode(player_old_db)
 end
 
 local KitByLevel = {}
@@ -105,33 +110,45 @@ end
 local function getKitData(player)
   local uid = tostring(player:getUserID())
 
-  if player_table[uid] == nil then
-    player_table[uid] = {}
+  if not player_db.has(uid) then
+    player_db.set(uid, {})
   end
 
-  if player_table[uid].kits == nil then
-    player_table[uid].kits = {
+  local dataPlayer = player_db.get(uid) or {}
+
+  if player_old_table[uid] and player_old_table[uid].kits ~= nil then
+    dataPlayer.kits = player_old_table[uid].kits
+    player_db.set(dataPlayer)
+  end
+
+  if dataPlayer.kits == nil then
+    dataPlayer.kits = {
       level = 1,
       exp = 0,
       requireExp = calcRequireExp(1),
       claimed = {},
       __temp = ''
     }
+
+    player_db.set(uid, dataPlayer)
   else
-    if player_table[uid].kits.level == nil or player_table[uid].kits.level < 1 then
-      player_table[uid].kits.level = 1
+    if dataPlayer.kits.level == nil or dataPlayer.kits.level < 1 then
+      dataPlayer.kits.level = 1
+      player_db.set(uid, dataPlayer)
     end
 
-    if player_table[uid].kits.requireExp == nil then
-      player_table[uid].kits.requireExp = calcRequireExp(player_table[uid].kits.level)
+    if dataPlayer.kits.requireExp == nil then
+      dataPlayer.kits.requireExp = calcRequireExp(dataPlayer.kits.level)
+      player_db.set(uid, dataPlayer)
     end
 
-    if player_table[uid].kits.claimed == nil then
-      player_table[uid].kits.claimed = {}
+    if dataPlayer.kits.claimed == nil then
+      dataPlayer.kits.claimed = {}
+      player_db.set(uid, dataPlayer)
     end
   end
 
-  return player_table[uid].kits
+  return dataPlayer
 end
 
 local function giveKit(player, kit)
@@ -213,6 +230,7 @@ local function kitDialog(player)
   local kitData = getKitData(player)
   local dialog = {
     'set_default_color|`o',
+    'set_bg_color|0,0,0,150|',
     ('add_custom_button|iconID|icon:' .. Configuration.dialog.titleIcon .. ';margin:0.5,0;state:disabled|'),
     ('add_progress_bar|' .. Configuration.dialog.titleLabel .. '|big||' .. kitData.exp .. '|' .. calcRequireExp(kitData.level) .. '|' .. kitData.level .. ' (' .. kitData.exp .. '/' .. calcRequireExp(kitData.level) .. ')|4294967295|'),
     'reset_placement_x|',
@@ -287,9 +305,27 @@ onPlayerDialogCallback(function(world, player, data)
               player:onConsoleMessage('`4Kit already claimed')
             end
           else
-            player:onConsoleMessage(
-              '`4Required Level `o' .. kit.level .. '`4, your level is `o' .. kitData.level
-            )
+            local kit_desc = {
+              'set_default_color|`o',
+              'set_bg_color|0,0,0,150|',
+              ('add_label_with_icon|big|Kit Reward' .. index .. ' (' .. kitData.level .. '/' .. kit.level .. ')|left|' .. kit.icon '|'),
+              ('add_smalltext|' .. kit.description .. '|'),
+              'add_spacer|small|',
+              'add_textbox|[ Rewards ]:|',
+            }
+
+            for itemID, amount in ipairs(kit.prizes) do
+              kit_desc[#kit_desc + 1] = ('add_label_with_icon|small|' .. getItem(itemID):getName() .. ' ' .. amount .. 'x|left|' .. itemID .. '|')
+            end
+
+            kit_desc[#kit_desc + 1] = 'add_spacer|small|'
+            kit_desc[#kit_desc + 1] =
+            'add_custom_button|back|textLabel:Back;middle_colour:130154495;border_colour:130154495;|'
+            kit_desc[#kit_desc + 1] =
+            'add_custom_button|back|textLabel:Back;middle_colour:130154495;border_colour:130154495;|'
+            kit_desc[#kit_desc + 1] = 'end_dialog|kit_desc||'
+
+            player:onDialogRequest(table.concat(kit_desc, '\n'))
           end
         end
       end
@@ -298,8 +334,15 @@ onPlayerDialogCallback(function(world, player, data)
     --kitDialog(player)
     return true
   end
+
+  if data['dialog_name'] == 'kit_desc' then
+    if data['buttonClicked'] == 'back' then
+      kitDialog(player)
+    end
+    return true
+  end
 end)
 
 onAutoSaveRequest(function()
-  saveStringToServer('nperma_player_db', json.encode(player_table))
+  saveStringToServer('nperma_player_db', json.encode(player_old_table))
 end)
