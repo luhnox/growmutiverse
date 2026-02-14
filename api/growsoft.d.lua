@@ -403,8 +403,17 @@ function setBroadcastWorld(worldName) end
 ---@param callback fun(world: World, player: Player, message: string): boolean|nil
 function onPlayerCommandCallback(callback) end
 
+---@param callback fun(world: World, player: Player, npc: Player): boolean|nil
+function onPlayerPunchNPCCallback(callback) end
+
+---@param callback fun(world: World, player: Player, target: Player): boolean|nil
+function onPlayerPunchPlayerCallback(callback) end
+
 ---@param callback fun(player: Player)
 function onPlayerLoginCallback(callback) end
+
+--- @param callback fun(world: World, player: Player, wrenchingPlayer: Player): boolean|nil
+function onPlayerWrenchCallback(callback) end
 
 ---@param callback fun(world: World, player: Player, data: string[]): boolean|nil
 function onPlayerDialogCallback(callback) end

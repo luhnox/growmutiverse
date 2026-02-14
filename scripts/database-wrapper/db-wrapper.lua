@@ -1,10 +1,90 @@
--- Database Wrapper by @Nperma | github: @nperma
-
 local DB = {}
 local SQL = {}
 local JSON = {}
 
 local json_directory = "currentState/luaData"
+local json_cache = {}
+
+local function ensureDir()
+  if dir.exists(json_directory) == false then
+    dir.create(json_directory)
+  end
+end
+
+local function jsonPath(id)
+  return json_directory .. "/" .. id .. ".json"
+end
+
+local function loadJSON(id)
+  ensureDir()
+
+  if json_cache[id] == nil then
+    if file.exists(jsonPath(id)) then
+      local raw = file.read(jsonPath(id))
+      local decoded = json.decode(raw)
+      if type(decoded) == "table" then
+        json_cache[id] = decoded
+      else
+        json_cache[id] = {}
+      end
+    else
+      json_cache[id] = {}
+      file.write(jsonPath(id), "{}")
+    end
+  end
+end
+
+local function flushJSON(id)
+  local data = json_cache[id]
+  file.write(jsonPath(id), json.encode(data, 2))
+end
+
+function JSON.open(identifier)
+  loadJSON(identifier)
+
+  local function set(key, value)
+    json_cache[identifier][tostring(key)] = value
+    flushJSON(identifier)
+  end
+
+  local function get(key)
+    return json_cache[identifier][tostring(key)]
+  end
+
+  local function has(key)
+    return json_cache[identifier][tostring(key)] ~= nil
+  end
+
+  local function delete(key)
+    json_cache[identifier][tostring(key)] = nil
+    flushJSON(identifier)
+  end
+
+  local function keys()
+    return json_cache[identifier]
+  end
+
+  local function values()
+    local out = {}
+    for _, v in pairs(json_cache[identifier]) do
+      out[#out + 1] = v
+    end
+    return out
+  end
+
+  local function close()
+  end
+
+  return {
+    set = set,
+    get = get,
+    has = has,
+    delete = delete,
+    keys = keys,
+    values = values,
+    close = close
+  }
+end
 
 function SQL.open(identifier)
   local raw = sqlite.open(identifier .. ".db")
@@ -16,136 +96,93 @@ function SQL.open(identifier)
         )
     ]])
 
-  return {
-    set = function(key, value)
-      raw:query(
-        "INSERT OR REPLACE INTO kv(key, value) VALUES (?, ?)",
-        key,
-        tostring(value)
-      )
-    end,
+  local function set(key, value)
+    raw:query(
+      "INSERT OR REPLACE INTO kv(key, value) VALUES (?, ?)",
+      key,
+      tostring(value)
+    )
+  end
 
-    get = function(key)
-      local rows = raw:query(
-        "SELECT value FROM kv WHERE key = ? LIMIT 1",
-        key
-      )
-      return rows and rows[1] and rows[1].value or nil
-    end,
+  local function get(key)
+    local rows = raw:query(
+      "SELECT value FROM kv WHERE key = ? LIMIT 1",
+      key
+    )
+    if rows ~= nil and rows[1] ~= nil then
+      return rows[1].value
+    end
+    return nil
+  end
 
-    has = function(key)
-      local rows = raw:query(
-        "SELECT 1 FROM kv WHERE key = ? LIMIT 1",
-        key
-      )
-      return rows and rows[1] ~= nil
-    end,
+  local function has(key)
+    local rows = raw:query(
+      "SELECT 1 FROM kv WHERE key = ? LIMIT 1",
+      key
+    )
+    return rows ~= nil and rows[1] ~= nil
+  end
 
-    delete = function(key)
-      raw:query("DELETE FROM kv WHERE key = ?", key)
-    end,
+  local function delete(key)
+    raw:query("DELETE FROM kv WHERE key = ?", key)
+  end
 
-    keys = function()
-      local out = {}
-      local rows = raw:query("SELECT key, value FROM kv")
-      for _, row in ipairs(rows or {}) do
+  local function keys()
+    local out = {}
+    local rows = raw:query("SELECT key, value FROM kv")
+    if rows ~= nil then
+      for _, row in ipairs(rows) do
         out[row.key] = row.value
       end
-      return out
-    end,
+    end
+    return out
+  end
 
-    values = function()
-      local out = {}
-      local rows = raw:query("SELECT value FROM kv")
-      for _, row in ipairs(rows or {}) do
+  local function values()
+    local out = {}
+    local rows = raw:query("SELECT value FROM kv")
+    if rows ~= nil then
+      for _, row in ipairs(rows) do
         out[#out + 1] = row.value
       end
-      return out
-    end,
-
-    close = function()
-      raw:close()
     end
-  }
-end
-
-local json_cache = {}
-
-local function jsonPath(id)
-  return json_directory .. "/" .. id .. ".json"
-end
-
-local function loadJSON(id)
-  if json_cache[id] then return end
-
-  if not dir.exists(json_directory) then
-    dir.create(json_directory)
+    return out
   end
 
-  if file.exists(jsonPath(id)) then
-    json_cache[id] = json.decode(file.read(jsonPath(id))) or {}
-  else
-    json_cache[id] = {}
-    file.write(jsonPath(id), "{}")
+  local function close()
+    raw:close()
   end
-end
-
-local function flushJSON(id)
-  file.write(jsonPath(id), json.encode(json_cache[id], 2))
-end
-
-function JSON.open(identifier)
-  loadJSON(identifier)
 
   return {
-    set = function(key, value)
-      json_cache[identifier][tostring(key)] = value
-      flushJSON(identifier)
-    end,
-
-    get = function(key)
-      return json_cache[identifier][tostring(key)]
-    end,
-
-    has = function(key)
-      return json_cache[identifier][tostring(key)] ~= nil
-    end,
-
-    delete = function(key)
-      json_cache[identifier][tostring(key)] = nil
-      flushJSON(identifier)
-    end,
-
-    keys = function()
-      return json_cache[identifier]
-    end,
-
-    values = function()
-      local out = {}
-      for _, v in pairs(json_cache[identifier]) do
-        out[#out + 1] = v
-      end
-      return out
-    end
+    set = set,
+    get = get,
+    has = has,
+    delete = delete,
+    keys = keys,
+    values = values,
+    close = close
   }
 end
 
 local function Database(identifier, mode)
-  mode = mode or "json"
+  local selectedMode = mode or "json"
 
-  local backend =
-      (mode == "sql")
-      and SQL.open(identifier)
-      or JSON.open(identifier)
+  local backend
+
+  if selectedMode == "sql" then
+    backend = SQL.open(identifier)
+  else
+    backend = JSON.open(identifier)
+  end
 
   return {
-    set    = backend.set,
-    get    = backend.get,
-    has    = backend.has,
+    set = backend.set,
+    get = backend.get,
+    has = backend.has,
     delete = backend.delete,
-    keys   = backend.keys,
+    keys = backend.keys,
     values = backend.values,
-    close  = backend.close
+    close = backend.close
   }
 end
 
