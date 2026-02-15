@@ -324,6 +324,12 @@ bit = {}
 ---@param commandData CommandData
 function registerLuaCommand(commandData) end
 
+--- @return number
+function getCurrentServerDailyEvent() end
+
+--- @return number
+function getCurrentServerEvent() end
+
 ---@param worldID number
 ---@return World
 function getWorld(worldID) end
@@ -359,6 +365,9 @@ function getRoles() end
 
 ---@param eventData EventData
 function registerLuaEvent(eventData) end
+
+---@param eventData EventData
+function registerLuaDailyEvent(eventData) end
 
 ---@return number
 function getCurrentServerEvent() end
@@ -408,6 +417,9 @@ function onPlayerPunchNPCCallback(callback) end
 
 ---@param callback fun(world: World, player: Player, target: Player): boolean|nil
 function onPlayerPunchPlayerCallback(callback) end
+
+---@param callback fun(world: World,player: Player, itemID: number, itemCount: number): boolean|nil
+function onPlayerCatchFishCallback(callback) end
 
 ---@param callback fun(player: Player)
 function onPlayerLoginCallback(callback) end
