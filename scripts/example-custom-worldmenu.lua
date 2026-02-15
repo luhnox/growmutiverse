@@ -1,160 +1,139 @@
-print('(example-telephone-modify) for GTPS Cloud | by Nperma')
+print('(example-custom-worldmenu) for GTPS Cloud | by Nperma')
 
-local DialogWrapper = require('dialog-wrapper') --- require dialog-wrapper module
+local random = math.random
+local lower = string.lower
 
-local MAX_ITEMS_PER_PAGE = 10
+math.randomseed(os.time())
 
-local function createPlayerListDialog(player, page)
-  page = page or 1
-
-  local players = getAllPlayers()
-  local totalPlayers = #players
-  local totalPages = math.max(1, math.ceil(totalPlayers / MAX_ITEMS_PER_PAGE))
-
-  --- @diagnostic disable
-  if page < 1 then page = 1 end
-  if page > totalPages then page = totalPages end
-
-  local startIndex = (page - 1) * MAX_ITEMS_PER_PAGE + 1
-  local endIndex = math.min(startIndex + MAX_ITEMS_PER_PAGE - 1, totalPlayers)
-
-  local embeds = {
-    string.format('add_label|small|Select Player to see the Balance (Page %d/%d)|center|', page, totalPages),
-    'add_spacer|small|'
-  }
-
-  for i = startIndex, endIndex do
-    local ply = players[i]
-
-    embeds[#embeds + 1] = {
-      element = 'add_custom_button',
-      name = 'player_' .. i,
-      args = {
-        textLabel = ply:getName(),
-        middle_colour = 3952825855,
-        border_colour = 3952825855
-      }
-    }
-
-    embeds[#embeds + 1] = 'add_custom_break|'
-  end
-
-  embeds[#embeds + 1] = 'add_custom_margin|x:0;y:8|'
-
-  if page > 1 then
-    embeds[#embeds + 1] = {
-      element = 'add_custom_button',
-      name = 'prev_' .. (page - 1),
-      args = {
-        textLabel = 'Previous',
-        middle_colour = 3135242239,
-        border_colour = 3135242239
-      }
-    }
-  end
-
-  if page < totalPages then
-    embeds[#embeds + 1] = {
-      element = 'add_custom_button',
-      name = 'next_' .. (page + 1),
-      args = {
-        textLabel = 'Next',
-        middle_colour = 3135242239,
-        border_colour = 3135242239,
-        anchor = 'prev_' .. (page - 1),
-        left = 1.05
-      }
-    }
-  end
-
-  DialogWrapper:create('dialog_view_balance', {
-    title = { align = 'center', label = 'Player List' },
-    disableResize = true,
-    addExitButton = true,
-    fields = embeds
-  }, function(world, player, data)
-    local button = data['buttonClicked']
-    local playerIndex = button:match('player_(%d+)')
-
-    local prevPage = button:match('prev_(%d+)')
-    local nextPage = button:match('next_(%d+)')
-    if prevPage then
-      createPlayerListDialog(player, tonumber(prevPage))
-    elseif nextPage then
-      createPlayerListDialog(player, tonumber(nextPage))
-    elseif playerIndex then
-      local selected = getAllPlayers()[tonumber(playerIndex)]
-      if selected then
-        player:onConsoleMessage(selected:getBankBalance())
-      end
-    end
-    return true
-  end):show(player)
+local function getPlayerCount(id)
+  local w = id and getWorld(id)
+  return w and w:getVisiblePlayersCount() or 0
 end
 
-onPlayerDialogCallback(function(world, player, data)
-  if data['dialog_name'] == 'phonecall' then
-    if data['dial'] and tonumber(data['dial']) == 67675 then
-      DialogWrapper:create('bank-mobile-services', {
-        title = { label = 'Mobile Transfer', icon = 2208 },
-        color = '`o',
-        addExitButton = true,
-        fields = {
+local function getOwnedSortedWorlds(player)
+  local owned = player:getOwnedWorlds() or {}
+  local smallLocks = player:getSmallLockedWorlds() or {}
 
-          'add_smalltext| Send and receive balance directly between players.|',
-          'add_spacer|small|',
-          'add_smalltext|`3TIP:`o Check your current balance before making any transaction.|',
-          'add_custom_margin|x:0;y:5|',
+  local lockMap = {}
+  for i = 1, #smallLocks do
+    lockMap[smallLocks[i]] = true
+  end
 
-          {
-            element = 'add_custom_button',
-            name = 'view_balance',
-            args = {
-              textLabel = 'Check Balance',
-              middle_colour = 4086702591,
-              border_colour = 4086702591,
-            }
-          },
+  local result = {}
 
-          'add_custom_break|',
-          'add_spacer|small|',
-          'add_smalltext|`2INFO:`o Transfers and requests are processed instantly and cannot be undone.|',
-          'add_custom_margin|x:0;y:5|',
-
-
-          {
-            element = 'add_custom_button',
-            name = 'send_balance',
-            args = {
-              textLabel = 'Send',
-              border_colour = 1353665791,
-              middle_colour = 1353665791
-            }
-          },
-
-          {
-            element = 'add_custom_button',
-            name = 'request_balance',
-            args = {
-              anchor = 'send_balance',
-              left = 1.05,
-              middle_colour = 130154495,
-              border_colour = 130154495,
-              textLabel = 'Request'
-            }
-          }
-
-        },
-      }, (function(world, player, data)
-        local button = data['buttonClicked']
-
-        if button == 'view_balance' then
-          createPlayerListDialog(player, 1)
-          return true
-        end
-        return true
-      end)):show(player)
-      return true
+  for i = 1, #owned do
+    local wid = owned[i]
+    if not lockMap[wid] then
+      result[#result + 1] = wid
     end
   end
+
+  table.sort(result, function(a, b)
+    local wa, wb = getWorld(a), getWorld(b)
+    if wa and wb then
+      return lower(wa:getName()) < lower(wb:getName())
+    end
+    return a < b
+  end)
+
+  return result
+end
+
+onWorldMenuRequest(function(player)
+  local activeBuf = {}
+  local recentBuf = {}
+  local ownedBuf = {}
+
+  local showRecently = random(0, 1) == 1
+  local showMyWorlds = not showRecently
+
+  local activeWorlds = getActiveWorlds()
+
+  for i = 1, #activeWorlds do
+    if i > 10 then break end
+
+    local world = activeWorlds[i]
+    local name = world:getName()
+
+    if not name:match('_') then
+      local color =
+          random(0, 255) * 16777216 +
+          random(0, 255) * 65536 +
+          random(0, 255) * 256 +
+          255
+
+      activeBuf[#activeBuf + 1] =
+          'add_floater|' ..
+          name .. '|' ..
+          name .. '|' ..
+          world:getVisiblePlayersCount() ..
+          '|0.5|' .. color
+    end
+  end
+
+  if showRecently then
+    local recent = player:getRecentWorlds()
+
+    for i = 1, #recent do
+      if i > 10 then break end
+
+      local world = getWorld(recent[i])
+      if world then
+        local name = world:getName()
+
+        recentBuf[#recentBuf + 1] =
+            'add_floater|' ..
+            name .. '|' ..
+            name .. '|' ..
+            world:getVisiblePlayersCount() ..
+            '|0.5|2442236415'
+      end
+    end
+  end
+
+  if showMyWorlds then
+    local owned = getOwnedSortedWorlds(player)
+
+    for i = 1, #owned do
+      if i > 10 then break end
+
+      local world = getWorld(owned[i])
+      if world then
+        local name = world:getName()
+
+        ownedBuf[#ownedBuf + 1] =
+            'add_floater|' ..
+            name .. '|' ..
+            name .. '|' ..
+            world:getVisiblePlayersCount() ..
+            '|0.5|1140796415'
+      end
+    end
+  end
+
+  local menu = {
+    'add_heading|Main World<ROW2>',
+    'add_floater|NPERMA|ę START|' .. getPlayerCount(313) .. '|0.75|1353665791',
+    'add_floater|REC|ā FEATURE|0|0.75|130154495',
+    'add_heading|`t',
+    'add_heading|World List<CR>',
+    table.concat(activeBuf, '\n')
+  }
+
+  if showMyWorlds then
+    menu[#menu + 1] = 'add_heading|My World<CR>'
+    menu[#menu + 1] = table.concat(ownedBuf, '\n')
+  end
+
+  if showRecently then
+    menu[#menu + 1] = 'add_heading|Recently World<CR>'
+    menu[#menu + 1] = table.concat(recentBuf, '\n')
+  end
+
+  player:sendVariant({
+    'OnRequestWorldSelectMenu',
+    table.concat(menu, '\n') .. '\n'
+  })
+
+  return true
 end)

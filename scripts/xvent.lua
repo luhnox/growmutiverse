@@ -77,7 +77,7 @@ onPlayerCommandCallback(function(_, user, cmd)
       string.format("add_label_with_icon|small|x%d|left|9438|\n", gemEvent) ..
       string.format("add_label_with_icon|small|x%d|left|1488|\n", xpEvent) ..
       string.format("add_smalltext|%s|\n", tempText) ..
-      string.format("add_smalltext|Price: %s %s|\n", formatNum(cost), currencyMode) ..
+      string.format("add_smalltext|Price: %s %s|\n", formatNum(math.max(cost, 1)), currencyMode) ..
       "add_spacer|small|\n" ..
       "add_custom_button|boost|textLabel:Boost Server;middle_colour:1353665791;border_colour:1353665791;|\n" ..
       (user:hasRole(reset_button_permission_role) and "add_custom_button|reset|textLabel:Reset;middle_colour:65535;border_colour:65535;anchor:boost;left:1.05;|\n" or "") ..
@@ -115,7 +115,7 @@ onPlayerDialogCallback(function(world, user, data)
         end
         user:removeGems(cost, 1, 1) --- @diagnostic disable-line
       else
-        local cost = gemEvent + offsetCoin
+        local cost = math.max(gemEvent + offsetCoin, 1)
         if user:getCoins() < cost then
           user:onTalkBubble(user:getNetID(), "`4Not enough PWL!", 0)
           return true
