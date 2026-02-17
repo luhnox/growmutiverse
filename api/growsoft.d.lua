@@ -409,6 +409,9 @@ function setBroadcastWorld(worldName) end
 -- CALLBACKS
 -- =========================================================
 
+---@param callback fun(player: Player): boolean|nil
+function onPlayerFirstTimeLoginCallback(callback) end
+
 ---@param callback fun(world: World, player: Player, message: string): boolean|nil
 function onPlayerCommandCallback(callback) end
 
