@@ -3,6 +3,7 @@
 
 local Command = {}
 local CommandData = {}
+local commandNames = {}
 
 local CPlayer = require('player-wrapper')
 
@@ -28,7 +29,7 @@ end
 
 
 ---comment
----@param option {name: string, description: string, aliases?: string[], roleRequired?: number, permission?: number, permissions?: number[]}
+---@param option {name: string, description?: string, aliases?: string[], roleRequired?: number, permission?: number, permissions?: number[]}
 ---@param callback fun(world: World, player: PlayerWrapper, data: {command: string, args: string[], message: string}): boolean
 function Command.register(option, callback)
   if option == nil or option.name == nil then
@@ -58,6 +59,7 @@ function Command.register(option, callback)
   }
 
   CommandData[name] = entry
+  commandNames[#commandNames + 1] = name
 
   if option.aliases then
     for _, alias in ipairs(option.aliases) do
@@ -74,6 +76,10 @@ function Command.register(option, callback)
   })
 end
 
+function Command.getCommands()
+  return commandNames
+end
+
 function Command.handle(world, sender, fullCommand)
   if fullCommand ~= nil then
     local command, args = fullCommand:match("^(%S+)%s*(.*)$")
@@ -83,7 +89,7 @@ function Command.handle(world, sender, fullCommand)
       local data = CommandData[command]
       local player = CPlayer.register(sender)
       if data ~= nil then
-        if data.roleRequired == 0 or player:hasRole(data.roleRequired) or #data.permissions > 1 and tableContains(data.permissions, player:getRole().roleID) then
+        if data.callback ~= nil and data.roleRequired == 0 or player:hasRole(data.roleRequired) or #data.permissions > 1 and tableContains(data.permissions, player:getRole().roleID) then
           return data.callback(world, player, { command = command, args = args, message = fullCommand })
         end
 
