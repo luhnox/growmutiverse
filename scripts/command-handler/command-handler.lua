@@ -16,18 +16,6 @@ local function tableContains(table, value)
   return false
 end
 
--- option:
--- {
---   command = string,
---   description = string,
---   aliases = string[]
---   roleRequired = number,   -- fallback
---   permission = number,     -- fallback
---   permissions = { number } -- priority (index 1)
--- }
--- callback: function(world, player, data)
-
-
 ---comment
 ---@param option {name: string, description?: string, aliases?: string[], roleRequired?: number, permission?: number, permissions?: number[]}
 ---@param callback fun(world: World, player: PlayerWrapper, data: {command: string, args: string[], message: string}): boolean
