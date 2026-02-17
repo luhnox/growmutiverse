@@ -1,8 +1,5 @@
 print('(custom-help) for GTPS Cloud | by Nperma')
 
-local command = require('command-handler')
-print(command:getCommands())
-
 local RoleObject = getRoles()
 
 local RoleIndex = {}
