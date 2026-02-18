@@ -43,7 +43,7 @@ local function collectRoles(player)
 end
 
 onPlayerCommandCallback(function(world, player, message)
-  local command = message:lower():match("^(%S+)$")
+  local command = message:lower():match("^(%S+)")
   if command == 'help' or command == '?' then
     local roles = collectRoles(player)
     local dialog = {

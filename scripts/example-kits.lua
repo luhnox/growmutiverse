@@ -3,10 +3,10 @@ print('(example-kits) for GTPS Cloud | by Nperma')
 
 local database = require('db-wrapper').wrapper --- required Database Module
 
-
 local Configuration = {
   xpPerBreakBlock = 20,
   xpPerPlaceBlock = 4,
+  xpPerCatchFish = 8,
 
   command = 'kits',
 
@@ -215,6 +215,10 @@ onTileBreakCallback(function(world, player, tile)
   addExp(player, Configuration.xpPerBreakBlock)
 end)
 
+onPlayerCatchFishCallback(function(world, player, itemID, itemCount)
+  addExp(player, Configuration.xpPerCatchFish)
+end)
+
 onTilePlaceCallback(function(world, player, tile)
   addExp(player, Configuration.xpPerPlaceBlock)
 end)
@@ -248,11 +252,12 @@ local function kitDialog(player)
   end
   dialog[#dialog + 1] = 'add_button_with_icon||END_LIST|noflags|0||'
   dialog[#dialog + 1] = 'add_spacer|small|'
-  dialog[#dialog + 1] = 'add_smalltext|`4Note`o: Kit XP entirely separate from regular XP...|'
+  dialog[#dialog + 1] = 'add_smalltext|`4Note`o: Kit XP entirely separate from regular XP|'
   dialog[#dialog + 1] =
   'add_smalltext|To get kit XP (not via gems like regular XP), you can do one of the following activities:|'
   dialog[#dialog + 1] = 'add_smalltext|- Breaking Blocks|'
   dialog[#dialog + 1] = 'add_smalltext|- Placing Blocks|'
+  dialog[#dialog + 1] = 'add_smalltext|- Fishings|'
   dialog[#dialog + 1] = 'end_dialog|kits|Thanks for the info||'
   player:onDialogRequest(table.concat(dialog, '\n'))
 end

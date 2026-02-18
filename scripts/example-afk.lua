@@ -24,17 +24,17 @@ math.randomseed(os.time())
 
 ---@type AfkConfiguration
 local Configuration = {
-  duration = 60,
+  duration = 600,
 
   reward = {
-    exp = { min = 5, max = 59 },
-    gems = { min = 3, max = 100 },
+    exp = { min = 1, max = 10 },
+    gems = { min = 3, max = 50 },
 
     multiple = true,
 
     items = {
       [242] = {
-        chance = 10,
+        chance = 0.01,
         amount = math.random(1, 5),
         multiple = false,
         multiple_max = 200
@@ -112,6 +112,7 @@ end)
 
 
 onPlayerTick(function(player)
+  if player:getWorld() == nil then return end
   local name, user = player:getName(), player:getUserID()
   local pos = { x = player:getPosX(), y = player:getPosY() }
 
