@@ -44,7 +44,7 @@ end
 
 onPlayerCommandCallback(function(world, player, message)
   local command = message:lower():match("^(%S+)$")
-  if command == 'help' then
+  if command == 'help' or command == '?' then
     local roles = collectRoles(player)
     local dialog = {
       'set_bg_color|0,0,0,150|',
