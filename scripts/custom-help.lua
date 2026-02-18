@@ -46,9 +46,12 @@ onPlayerCommandCallback(function(world, player, message)
   local command = message:lower():match("^(%S+)$")
   if command == 'help' then
     local roles = collectRoles(player)
-
-    local text = {
-      '`6>> Command List of `3GrowP Beta', --- Change this
+    local dialog = {
+      'set_bg_color|0,0,0,150|',
+      'set_default_color|`o',
+      'add_label_with_icon|big|Growp Commands|left|3524|',
+      'add_smalltext|`#See Command List of GrowP|',
+      'add_spacer|small|',
     }
 
     local commandOwner = {}
@@ -59,8 +62,8 @@ onPlayerCommandCallback(function(world, player, message)
       local roleName = role.roleName or 'unknown'
       local cmdList = role.allowCommands or {}
 
-      text[#text + 1] =
-          string.format('`o[ %s `o] (%d commands)', role.namePrefix .. roleName, #cmdList)
+      dialog[#dialog + 1] =
+          string.format('add_label|small|`o[ %s `o] (%d commands)|left|', role.namePrefix .. roleName, #cmdList)
 
       if #cmdList > 0 then
         table.sort(cmdList)
@@ -73,19 +76,23 @@ onPlayerCommandCallback(function(world, player, message)
 
           if owner then
             lines[#lines + 1] =
-                string.format('%s `4(used %s)`o', cmd, owner)
+                string.format('/%s `4(used %s)`w', cmd, owner)
           else
             commandOwner[cmd] = roleName
             lines[#lines + 1] =
-                string.format('%s', cmd)
+                string.format('/%s', cmd)
           end
         end
 
-        text[#text + 1] = table.concat(lines, ', ')
+        dialog[#dialog + 1] = 'add_smalltext|`w' .. table.concat(lines, ', ') .. '|'
       end
     end
 
-    player:onConsoleMessage(table.concat(text, '\n'))
+    dialog[#dialog + 1] = 'add_quick_exit|\nend_dialog|cmdList||'
+
+    player:onDialogRequest(table.concat(dialog, '\n'), 0, function(world, player, data)
+      if data['dialog_name'] == 'cmdList' then return true end
+    end)
     return true
   end
 end)
