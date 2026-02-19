@@ -22,7 +22,6 @@ local file_path = dir_path .. file_name
 
 if not dir.exists(dir_path) then dir.create(dir_path) end
 local stock = Configuration.stock
-if file.exists(file_path) then stock = tonumber(file.read(file_path)) or stock end
 
 local bonus = {
   { id = 2914,  amount = { 1, 5 }, chance = 15 },
@@ -58,7 +57,7 @@ end
 
 local temp = 0
 onTick(function()
-  if (os.time() % Configuration.resetEvery == 0) and temp ~= os.time() then
+  if ((os.time() % Configuration.resetEvery) == 0) and temp ~= os.time() then
     file.write(file_path,
       tostring(Configuration.stock))
   end
@@ -69,6 +68,7 @@ registerLuaCommand(commandData)
 onPlayerCommandCallback(function(world, player, command)
   if command:lower() == "sellchunk" then
     local itemData = getItem(3468)
+    if file.exists(file_path) then stock = tonumber(file.read(file_path)) or stock end
 
     if stock <= 0 then
       local now = os.time()
@@ -85,8 +85,9 @@ onPlayerCommandCallback(function(world, player, command)
       LogMessage(player, "You don't have any fish chunk!", 1)
       return true
     end
+    stock = math.max(stock - items)
+    file.write(file_path, tostring(stock, 0))
 
-    file.write(file_path, tostring(math.max((stock - items), 0)))
 
     player:changeItem(itemData:getID(), -items, 0)
 
