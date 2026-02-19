@@ -577,6 +577,12 @@ function getServerPlayers() end
 ---@return number
 function getServerDefaultPort() end
 
+function getStoreItems() end
+
+function getCurrencyMediumName() end
+
+function getCurrencyIcon() end
+
 -- =========================================================
 -- MOD IDS
 -- =========================================================
