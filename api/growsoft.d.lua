@@ -147,6 +147,8 @@ bit = {}
 -- =========================================================
 
 ---@class Player
+---@field getBlockPosX fun(self: Player): number --- tile position
+---@field getBlockPosY fun(self: Player): number --- tile position
 ---@field enterWorld fun(self: Player, worldName: string, worldIDdoor: string,notification: number)
 ---@field getWorld fun(self: Player): World
 ---@field getRole fun(self: Player): Role
