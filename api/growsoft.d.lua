@@ -318,6 +318,7 @@ bit = {}
 ---@field redeemCode fun(self: World, player: Player, code: string)
 ---@field getMagplantRemoteTile fun(self: World, player: Player): Tile|nil
 ---@field useConsumable fun(self: World, player: Player,tile: Tile, itemID: number, condition?: 1|0): boolean
+---@field findPathByTile fun(start_tile: Tile, end_tile: Tile, DistanceX: number, DistanceY: number): {x:number,y:number}[]|nil
 
 -- =========================================================
 -- GLOBAL FUNCTIONS
