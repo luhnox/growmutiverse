@@ -462,6 +462,8 @@ function setBroadcastWorld(worldName) end
 ---@field getCommandName fun(self: DiscordSlashStructure): string
 ---@field getChannelID fun(self: DiscordSlashStructure): string
 ---@field getAuthorID fun(self: DiscordSlashStructure): string
+---@field editOriginalResponse fun(self: DiscordSlashStructure, content: string, components?: table|0, flags?: table|0): nil
+---@field thinking fun(self: DiscordSlashStructure): nil
 ---@field reply fun(self: DiscordSlashStructure, message: string, components?: table|0, flags?: table|0, mentionUser?: 0|1): nil
 
 ---@class DiscordButtonStruture
