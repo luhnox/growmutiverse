@@ -158,10 +158,10 @@ bit = {}
 
 ---@class DiscordBot
 ---@field messageCreate fun(channel_id_string: string, message: string, components?: table|0, flags?: table|0, type?: any): nil
----@field messageEdit fun(self: DiscordBot, message_id_string: string, channel_id_string: string, content: string, components?: table|0, flags?: table|0, type?: any): nil
----@field messageDelete fun(self: DiscordBot, channel_id_string: string, message_id_string: string): nil
----@field directMessageCreate fun(self: DiscordBot, user_id_string: string, message: string, components?: table|0, flags?: table|0, type?: any): nil
----@field globalCommandCreate fun(self: DiscordBot, commandName: string, description: string, options?: DiscordCommandData[]): nil
+---@field messageEdit fun(message_id_string: string, channel_id_string: string, content: string, components?: table|0, flags?: table|0, type?: any): nil
+---@field messageDelete fun(channel_id_string: string, message_id_string: string): nil
+---@field directMessageCreate fun(user_id_string: string, message: string, components?: table|0, flags?: table|0, type?: any): nil
+---@field globalCommandCreate fun(commandName: string, description: string, options?: DiscordCommandData[]): nil
 DiscordBot = {}
 
 -- =========================================================
@@ -363,7 +363,7 @@ punishmentData = {}
 ---@field getAllPunishments fun(self: World): punishmentData[]
 ---@field removePunishment fun(self: World,player: Player, punishmentID: punishmentType)
 ---@field getPunishment fun(self: World,player: Player, punishmentID: punishmentType): punishmentData|nil
----@field spawnGhost fun(self: World, tile: Tile, userID_spawner: number, despawnIn: number,m_speed: number)
+---@field spawnGhost fun(self: World, tile: Tile, ghostType: number, userID_spawner: number, despawnIn: number,m_speed: number)
 
 -- =========================================================
 -- GLOBAL FUNCTIONS
