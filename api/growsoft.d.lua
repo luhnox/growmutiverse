@@ -113,6 +113,10 @@ bit = {}
 ---@field setEditableType fun(self: Item, value: number)
 ---@field setPrice fun(self: Item, price: number)
 ---@field isObtainable fun(self: Item): boolean
+---@field getPricedRarity fun(self: Item): string
+---@field getTexture fun(self: Item): string
+---@field getTextureX fun(self: Item): number
+---@field getTextureY fun(self: Item): number
 
 -- =========================================================
 -- TILE
@@ -141,6 +145,24 @@ bit = {}
 ---@field getPosY fun(self: Drop): number
 ---@field getItemCount fun(self: Drop): number
 ---@field getFlags fun(self: Drop): number
+
+-- =========================================================
+-- DiscordBot
+-- =========================================================
+
+---@class DiscordCommandData
+---@field type 'number'|'string'|'float'|'boolean'|'user'|'channel'|'role'
+---@field name string
+---@field description string
+---@field required boolean
+
+---@class DiscordBot
+---@field messageCreate fun(channel_id_string: string, message: string, components?: table|0, flags?: table|0, type?: any): nil
+---@field messageEdit fun(self: DiscordBot, message_id_string: string, channel_id_string: string, content: string, components?: table|0, flags?: table|0, type?: any): nil
+---@field messageDelete fun(self: DiscordBot, channel_id_string: string, message_id_string: string): nil
+---@field directMessageCreate fun(self: DiscordBot, user_id_string: string, message: string, components?: table|0, flags?: table|0, type?: any): nil
+---@field globalCommandCreate fun(self: DiscordBot, commandName: string, description: string, options?: DiscordCommandData[]): nil
+DiscordBot = {}
 
 -- =========================================================
 -- PLAYER & NPC
@@ -252,6 +274,7 @@ bit = {}
 ---@field setStats fun(self: Player, type: number, amount: number)
 ---@field hasGrowID fun(self: Player): boolean
 ---@field getXP fun(self: Player): number
+---@field setCustomAutofarmDelay fun(self: Player, delayMS: number): nil
 
 ---@class NPC
 ---@return Player
@@ -259,6 +282,23 @@ bit = {}
 -- =========================================================
 -- WORLD
 -- =========================================================
+
+---@class punishmentType
+---@field Ban number
+---@field Mute number
+punishmentType = {
+  Ban = 1,
+  Mute = 2,
+}
+
+---@class punishmentData
+---@field invokerID number
+---@field userID number
+---@field reason string
+---@field type punishmentType
+---@field expires number
+---@field IP number
+punishmentData = {}
 
 ---@class World
 ---@field getName fun(self: World): string
@@ -319,6 +359,11 @@ bit = {}
 ---@field getMagplantRemoteTile fun(self: World, player: Player): Tile|nil
 ---@field useConsumable fun(self: World, player: Player,tile: Tile, itemID: number, condition?: 1|0): boolean
 ---@field findPathByTile fun(start_tile: Tile, end_tile: Tile, DistanceX: number, DistanceY: number): {x:number,y:number}[]|nil
+---@field addPunishment fun(self: World, player: Player, type: punishmentType, length_seconds: number, reason: string, punish_by_userID: number)
+---@field getAllPunishments fun(self: World): punishmentData[]
+---@field removePunishment fun(self: World,player: Player, punishmentID: punishmentType)
+---@field getPunishment fun(self: World,player: Player, punishmentID: punishmentType): punishmentData|nil
+---@field spawnGhost fun(self: World, tile: Tile, userID_spawner: number, despawnIn: number,m_speed: number)
 
 -- =========================================================
 -- GLOBAL FUNCTIONS
@@ -412,8 +457,50 @@ function setBroadcastWorld(worldName) end
 -- CALLBACKS
 -- =========================================================
 
+---@class DiscordSlashStructure
+---@field getPlayer fun(self: DiscordSlashStructure): Player
+---@field getCommandName fun(self: DiscordSlashStructure): string
+---@field getChannelID fun(self: DiscordSlashStructure): string
+---@field getAuthorID fun(self: DiscordSlashStructure): string
+---@field reply fun(self: DiscordSlashStructure, message: string, components?: table|0, flags?: table|0, mentionUser?: 0|1): nil
+
+---@class DiscordButtonStruture
+---@field getCustomID fun(self: DiscordButtonStruture): string
+---@field reply fun(self: DiscordButtonStruture, message: string, components?: table|0, flags?: table|0, mentionUser?: 0|1): nil
+---@field getContent fun(self: DiscordButtonStruture): string
+---@field getChannelID fun(self: DiscordButtonStruture): string
+---@field getAuthorID fun(self: DiscordButtonStruture): string
+---@field getPlayer fun(self: DiscordButtonStruture): Player
+---@field editOriginalResponse fun(self: DiscordButtonStruture, content: string, components?: table|0, flags?: table|0): nil
+---@field isBot fun(self: DiscordButtonStruture): boolean
+
+---@class DiscordMessageStructure
+---@field reply fun(self: DiscordMessageStructure, message: string, components?: table|0, flags?: table|0, mentionUser?: 0|1): nil
+---@field editOriginalResponse fun(self: DiscordMessageStructure, content: string, components?: table|0, flags?: table|0): nil
+---@field getContent fun(self: DiscordMessageStructure): string
+---@field getChannelID fun(self: DiscordMessageStructure): string
+---@field getAuthorID fun(self: DiscordMessageStructure): string
+---@field getPlayer fun(self: DiscordMessageStructure): Player
+---@field editOriginalResponse fun(self: DiscordMessageStructure, content: string, components?: table|0, flags?: table|0): nil
+---@field isBot fun(self: DiscordMessageStructure): boolean
+
+---@param callback fun(e: DiscordButtonStruture): boolean|nil
+function onDiscordButtonClickCallback(callback) end
+
+---@param callback fun(e: DiscordSlashStructure): boolean|nil
+function onDiscordSlashCommandCallback(callback) end
+
+---@param callback fun(): nil
+function onDiscordBotReadyCallback(callback) end
+
+---@param callback fun(e: DiscordMessageStructure): boolean|nil
+function onDiscordMessageCreateCallback(callback) end
+
 ---@param callback fun(player: Player): boolean|nil
 function onPlayerFirstTimeLoginCallback(callback) end
+
+--- @param callback fun(world: World, player: Player, tile: Tile): boolean
+function onPlayerActivateTileCallback(callback) end
 
 ---@param callback fun(world: World, player: Player, message: string): boolean|nil
 function onPlayerCommandCallback(callback) end
@@ -672,5 +759,21 @@ ModID = {
   chat_cd = -1000,
   green_beer = -1100,
 }
+
+ReplyFlags = {
+  CROSSPOSTED = bit.lshift(1, 0),
+  IS_CROSSPOST = bit.lshift(1, 1),
+  SUPRESS_EMBEDS = bit.lshift(1, 2),
+  SOURCE_MESSAGE_DELETED = bit.lshift(1, 3),
+  URGENT = bit.lshift(1, 4),
+  HAS_THREAD = bit.lshift(1, 5),
+  EPHEMERAL = bit.lshift(1, 6),
+  LOADING = bit.lshift(1, 7),
+  THREAD_MENTION_FAILED = bit.lshift(1, 8),
+  SUPRESS_NOTIFICATIONS = bit.lshift(1, 12),
+  IS_VOICE_MESSAGE = bit.lshift(1, 13),
+  HAS_SNAPSHOT = bit.lshift(1, 14),
+  USING_COMPONENTS_V2 = bit.lshift(1, 15)
+};
 
 -- NOTE: LAST TEST ID -1600, HAVENT CHECK THE + NUMBER
