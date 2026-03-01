@@ -462,25 +462,25 @@ function setBroadcastWorld(worldName) end
 ---@field getCommandName fun(self: DiscordSlashStructure): string
 ---@field getChannelID fun(self: DiscordSlashStructure): string
 ---@field getAuthorID fun(self: DiscordSlashStructure): string
----@field editOriginalResponse fun(self: DiscordSlashStructure, content: string, components?: table|0, flags?: table|0): nil
+---@field editOriginalResponse fun(self: DiscordSlashStructure, content: string, components?: table|any, flags?: table|any): nil
 ---@field thinking fun(self: DiscordSlashStructure): nil
 ---@field isBot fun(self: DiscordSlashStructure): boolean
 ---@field getParameter fun(self: DiscordSlashStructure, paramName: string): any
----@field reply fun(self: DiscordSlashStructure, message: string, components?: table|0, flags?: table|0, mentionUser?: 0|1): nil
+---@field reply fun(self: DiscordSlashStructure, message: string, components?: table|any, flags?: table|any, mentionUser?: 0|1): nil
 
 ---@class DiscordButtonStruture
 ---@field getCustomID fun(self: DiscordButtonStruture): string
----@field reply fun(self: DiscordButtonStruture, message: string, components?: table|0, flags?: table|0, mentionUser?: 0|1): nil
+---@field reply fun(self: DiscordButtonStruture, message: string, components?: table|any, flags?: table|any, mentionUser?: 0|1): nil
 ---@field getContent fun(self: DiscordButtonStruture): string
 ---@field getChannelID fun(self: DiscordButtonStruture): string
 ---@field getAuthorID fun(self: DiscordButtonStruture): string
 ---@field getPlayer fun(self: DiscordButtonStruture): Player
----@field editOriginalResponse fun(self: DiscordButtonStruture, content: string, components?: table|0, flags?: table|0): nil
+---@field editOriginalResponse fun(self: DiscordButtonStruture, content: string, components?: table|any, flags?: table|any): nil
 ---@field isBot fun(self: DiscordButtonStruture): boolean
 
 ---@class DiscordMessageStructure
----@field reply fun(self: DiscordMessageStructure, message: string, components?: table|0, flags?: table|0, mentionUser?: 0|1): nil
----@field editOriginalResponse fun(self: DiscordMessageStructure, content: string, components?: table|0, flags?: table|0): nil
+---@field reply fun(self: DiscordMessageStructure, message: string, components?: table|any, flags?: table|any, mentionUser?: 0|1): nil
+---@field editOriginalResponse fun(self: DiscordMessageStructure, content: string, components?: table|any, flags?: table|any): nil
 ---@field getContent fun(self: DiscordMessageStructure): string
 ---@field getChannelID fun(self: DiscordMessageStructure): string
 ---@field getAuthorID fun(self: DiscordMessageStructure): string
