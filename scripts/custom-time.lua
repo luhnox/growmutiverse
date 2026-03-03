@@ -7,10 +7,15 @@ local MONTH_NAMES = {
 }
 
 local function getOrdinal(n)
-  local d = n % 10
-  if d == 1 and n ~= 11 then return "st" end
-  if d == 2 and n ~= 12 then return "nd" end
-  if d == 3 and n ~= 13 then return "rd" end
+  local lastTwo = n % 100
+  if lastTwo >= 11 and lastTwo <= 13 then
+    return "th"
+  end
+
+  local last = n % 10
+  if last == 1 then return "st" end
+  if last == 2 then return "nd" end
+  if last == 3 then return "rd" end
   return "th"
 end
 
@@ -74,7 +79,7 @@ onPlayerCommandCallback(function(world, player, command)
     local t = formatTime(now, 7) -- WIB
 
     local text =
-        "`2Asia/Jakarta (UTC+7) " ..
+        "`2Asia Jakarta (UTC+7) " ..
         t.day .. getOrdinal(t.day) .. ", " ..
         MONTH_NAMES[t.month] .. " " ..
         string.format("%02d:%02d %s.", t.hour, t.minute, t.ampm)
