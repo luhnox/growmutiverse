@@ -24,7 +24,7 @@ math.randomseed(os.time())
 
 ---@type AfkConfiguration
 local Configuration = {
-  duration = 10,
+  duration = 600,
 
   reward = {
     exp = { min = 1, max = 10 },
@@ -157,7 +157,7 @@ onPlayerTick(function(player)
     return
   end
 
-  player:onConsoleMessage(os.time() - data.lastMove)
+  ---player:onConsoleMessage(os.time() - data.lastMove)
 
   if isAfk[user] ~= nil then giveRewards(player) end
 

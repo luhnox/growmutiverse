@@ -162,6 +162,9 @@ bit = {}
 ---@field messageDelete fun(channel_id_string: string, message_id_string: string): nil
 ---@field directMessageCreate fun(user_id_string: string, message: string, components?: table|0, flags?: table|0, type?: any): nil
 ---@field globalCommandCreate fun(commandName: string, description: string, options?: DiscordCommandData[]): nil
+---@field guildMemberAddRole fun(guild_id_string: string, user_id_string: string, role_id_string: string): nil
+---@field guildMemberRemoveRole fun(guild_id_string: string, user_id_string: string, role_id_string: string): nil
+---@field guildMemberSetNickname fun(guild_id_string: string, user_id_string: string, nickname: string): nil
 DiscordBot = {}
 
 -- =========================================================
@@ -275,6 +278,9 @@ DiscordBot = {}
 ---@field hasGrowID fun(self: Player): boolean
 ---@field getXP fun(self: Player): number
 ---@field setCustomAutofarmDelay fun(self: Player, delayMS: number): nil
+---@field hasMod fun(self: Player, playModID: number): nil
+---@field updateStats fun(self: Player, world: World, StatsID: number, param3: number)
+---@field getAutofarm fun(self: Player): {getSlots: fun(self:Player): number,setSlots: fun(self:Player,value:number)}
 
 ---@class NPC
 ---@return Player
