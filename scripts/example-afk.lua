@@ -24,7 +24,7 @@ math.randomseed(os.time())
 
 ---@type AfkConfiguration
 local Configuration = {
-  duration = 600,
+  duration = 10,
 
   reward = {
     exp = { min = 1, max = 10 },
@@ -51,25 +51,55 @@ local Configuration = {
 
 local afkData = {}
 
+local function formatDuration(seconds)
+  seconds = math.max(0, seconds)
+
+  local h = math.floor(seconds / 3600)
+  local m = math.floor((seconds % 3600) / 60)
+  local s = seconds % 60
+
+  local result = {}
+
+  if h > 0 then table.insert(result, h .. "h") end
+  if m > 0 then table.insert(result, m .. "m") end
+  if s > 0 or #result == 0 then table.insert(result, s .. "s") end
+
+  return table.concat(result, " ")
+end
+
 local function randRange(range)
   return math.random(range.min, range.max)
 end
 
 local isAfk = {}
 
+local AFK_SUFFIX = " `4[AFK]"
+
 local function resetAfk(player)
   local uid = player:getUserID()
   if isAfk[uid] ~= nil then
-    player:onConsoleMessage('Player no Longer AFK')
+    local afkStart = afkData[uid].start and afkData[uid].start or os.time()
+    local duration = os.time() - afkStart
+
+    player:onConsoleMessage("`oYou are no longer AFK")
+    player:onConsoleMessage("`#AFK Duration: `2" .. formatDuration(duration))
+
     isAfk[uid] = nil
   end
   local name = player:getName()
   local pos = { x = player:getPosX(), y = player:getPosY() }
 
-  afkData[name] = {
+  local cleanName = name:gsub("%s*`4%[AFK%]", "")
+
+  if cleanName ~= name then
+    player:setNickname(cleanName)
+  end
+
+  afkData[uid] = {
     x = pos.x,
     y = pos.y,
-    lastMove = os.time()
+    lastMove = os.time(),
+    start = os.time()
   }
 end
 
@@ -116,7 +146,7 @@ onPlayerTick(function(player)
   local name, user = player:getName(), player:getUserID()
   local pos = { x = player:getPosX(), y = player:getPosY() }
 
-  local data = afkData[name]
+  local data = afkData[user]
   if not data then
     resetAfk(player)
     return
@@ -127,12 +157,13 @@ onPlayerTick(function(player)
     return
   end
 
-  ---player:onConsoleMessage(os.time() - data.lastMove)
+  player:onConsoleMessage(os.time() - data.lastMove)
 
   if isAfk[user] ~= nil then giveRewards(player) end
 
   if os.time() - data.lastMove >= Configuration.duration then
     if isAfk[user] == nil then
+      afkData[user].start = os.time()
       player:onConsoleMessage('`oYou are now AFK')
       if math.random(0, 1) == 1 then
         player:sendVariant({
@@ -147,6 +178,7 @@ onPlayerTick(function(player)
         player:playAudio('audio/msg.wav')
       end
       isAfk[user] = true
+      player:setNickname(name .. AFK_SUFFIX)
     end
     data.lastMove = os.time()
   end
