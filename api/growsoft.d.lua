@@ -171,6 +171,10 @@ DiscordBot = {}
 -- PLAYER & NPC
 -- =========================================================
 
+---@class Autofarm
+---@field getSlots fun(self: Autofarm): number
+---@field setSlots fun(self: Autofarm, value:number)
+
 ---@class Player
 ---@field getBlockPosX fun(self: Player): number --- tile position
 ---@field getBlockPosY fun(self: Player): number --- tile position
@@ -280,7 +284,7 @@ DiscordBot = {}
 ---@field setCustomAutofarmDelay fun(self: Player, delayMS: number): nil
 ---@field hasMod fun(self: Player, playModID: number): nil
 ---@field updateStats fun(self: Player, world: World, StatsID: number, param3: number)
----@field getAutofarm fun(self: Player): {getSlots: fun(self:Player): number,setSlots: fun(self:Player,value:number)}
+---@field getAutofarm fun(self: Player): Autofarm
 
 ---@class NPC
 ---@return Player
