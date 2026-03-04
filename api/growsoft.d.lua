@@ -285,6 +285,7 @@ DiscordBot = {}
 ---@field hasMod fun(self: Player, playModID: number): nil
 ---@field updateStats fun(self: Player, world: World, StatsID: number, param3: number)
 ---@field getAutofarm fun(self: Player): Autofarm
+---@field getStats fun(self: Player, Stats_type: number): number
 
 ---@class NPC
 ---@return Player
@@ -462,6 +463,15 @@ function getWorldByName(worldName) end
 
 --- @param worldName string
 function setBroadcastWorld(worldName) end
+
+---@param itemID number
+function getEcoQuantity(itemID) end
+
+---@param itemID number
+function getEcoQuantityPlayers(itemID) end
+
+---@param itemID number
+function getEcoQuantityWorlds(itemID) end
 
 -- =========================================================
 -- CALLBACKS
