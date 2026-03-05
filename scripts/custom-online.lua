@@ -259,7 +259,7 @@ local cache = {}
 local function updateStatsCache()
   local onlinePlayers = getServerPlayers()
   local newCache = {
-    onlineCount = #onlinePlayers,
+    onlineCount = 0,
     serverName = getServerName(),
     uptime = os.time() - serverStartTime,
     devices = { PC = 0, Android = 0, iOS = 0, Other = 0 },
@@ -295,9 +295,12 @@ local function updateStatsCache()
     local worldName = p:getWorldName() or "EXIT"
     worldCounts[worldName] = (worldCounts[worldName] or 0) + 1
 
-    table.insert(playerList,
-      "`w" .. p:getName() .. ' `w[' ..
-      (p:getPing() < 120 and '`2' or p:getPing() > 500 and '`4' or '`o') .. p:getPing() .. '`w]')
+    if not p:hasMod(-77) then
+      newCache.onlineCount = (newCache.onlineCount or 0) + 1
+      table.insert(playerList,
+        "`w" .. p:getName() .. ' `w[' ..
+        (p:getPing() < 120 and '`2' or p:getPing() > 500 and '`4' or '`o') .. p:getPing() .. '`w]')
+    end
   end
 
   local sortedWorlds = {}
