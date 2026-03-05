@@ -174,6 +174,8 @@ DiscordBot = {}
 ---@class Autofarm
 ---@field getSlots fun(self: Autofarm): number
 ---@field setSlots fun(self: Autofarm, value:number)
+---@field getTargetBlockID fun(self: Autofarm): number
+---@field setTargetBlockID fun(self: Autofarm, blockID: number)
 
 ---@class Player
 ---@field getBlockPosX fun(self: Player): number --- tile position
@@ -286,6 +288,7 @@ DiscordBot = {}
 ---@field updateStats fun(self: Player, world: World, StatsID: number, param3: number)
 ---@field getAutofarm fun(self: Player): Autofarm
 ---@field getStats fun(self: Player, Stats_type: number): number
+---@field getRealName fun(self: Player): string
 
 ---@class NPC
 ---@return Player
