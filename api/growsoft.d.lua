@@ -93,10 +93,20 @@ bit = {}
 ---@field dailyRewardDiamondLocksCount number
 ---@field rolePriority number
 ---@field computedFlags number
+---@field allowCommands string[]
+---@field allowCommandsFromRoles number[]
 
 -- =========================================================
 -- ITEM
 -- =========================================================
+
+--- @class ItemEffect
+--- @field item_id number
+--- @field extra_gems number,
+--- @field extra_xp number
+--- @field one_hit 1|0
+--- @field break_range number
+--- @field build_range number
 
 ---@class Item
 ---@field getName fun(self: Item): string
@@ -117,6 +127,8 @@ bit = {}
 ---@field getTexture fun(self: Item): string
 ---@field getTextureX fun(self: Item): number
 ---@field getTextureY fun(self: Item): number
+---@field getEffect fun(self: Item): ItemEffect
+---@field setEffect fun(self: Item, effect: ItemEffect)
 
 -- =========================================================
 -- TILE
@@ -678,6 +690,9 @@ function getAllPlayers() end
 
 ---@return number
 function getMaxLevel() end
+
+---@return ItemEffect[]
+function getItemEffects() end
 
 ---@param name string
 ---@return Player|nil
