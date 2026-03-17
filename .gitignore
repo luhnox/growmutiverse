@@ -1,5 +1,5 @@
 # Ignore everything inside scripts/premium
-scripts/premium/*
+# scripts/premium/*
 
 # But keep markdown documentation
 !scripts/premium/*.md
